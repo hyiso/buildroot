@@ -146,6 +146,11 @@ config("default_libs") {
       "dl",
       "m",
     ]
+  } else if (is_ohos) {
+    libs = [
+      "dl",
+      "hilog_ndk.z",
+    ]
   } else if (is_linux) {
     libs = [ "dl" ]
   }
