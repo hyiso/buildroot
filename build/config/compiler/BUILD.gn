@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import("//build/config/android/config.gni")
+import("//build/config/ohos/config.gni")
 import("//build/toolchain/wasm.gni")
 if (current_cpu == "arm") {
   import("//build/config/arm.gni")
@@ -330,7 +331,7 @@ config("compiler") {
 
   # Linux/Android common flags setup.
   # ---------------------------------
-  if (is_linux || is_android) {
+  if (is_linux || is_android || is_ohos) {
     cflags += [
       "-fPIC",
       "-pipe",  # Use pipes for communicating between sub-processes. Faster.
@@ -356,6 +357,15 @@ config("compiler") {
     if (current_cpu == "arm64") {
       cflags += [ "--target=aarch64-linux-gnu" ]
       ldflags += [ "--target=aarch64-linux-gnu" ]
+      cflags += [ "-DBORINGSSL_CLANG_SUPPORTS_DOT_ARCH" ]
+    }
+  } else if (is_ohos) {
+    cflags += [ "-pthread" ]
+    ldflags += [ "-pthread" ]
+
+    if (current_cpu == "arm64") {
+      cflags += [ "--target=aarch64-linux-ohos" ]
+      ldflags += [ "--target=aarch64-linux-ohos" ]
       cflags += [ "-DBORINGSSL_CLANG_SUPPORTS_DOT_ARCH" ]
     }
   }
@@ -527,9 +537,13 @@ config("runtime_library") {
       ldflags += [ "-nostdlib++" ]
     }
     include_dirs = [
-      "//flutter/third_party/libcxx/include",
       "//flutter/third_party/libcxxabi/include",
     ]
+    if (is_ohos) {
+      include_dirs += [ "${ohos_sdk_root}/llvm/include/c++/v1" ]
+    } else {
+      include_dirs += [ "//flutter/third_party/libcxx/include" ]
+    }
   }
 
   # Android standard library setup.
@@ -656,7 +670,7 @@ if (is_win) {
     "-Wno-psabi",
   ]
 
-  if (!is_android) {
+  if (!is_android && !is_ohos) {
     default_warning_flags += [
       # Needed for nlohmann/json.
       "-Wno-deprecated-literal-operator",
@@ -883,6 +897,8 @@ config("optimize") {
     cflags = [ "-Os" ] + common_optimize_on_cflags  # Favor size over speed.
   } else if (is_android || is_fuchsia) {
     cflags = [ "-Oz" ] + common_optimize_on_cflags  # Favor size over speed.
+  } else if (is_ohos) {
+    cflags = [ "-O3" ] + common_optimize_on_cflags
   } else if (is_wasm) {
     if (wasm_prioritize_size) {
       cflags = [ "-Oz" ]
@@ -894,7 +910,7 @@ config("optimize") {
   }
 
   lto_flags = []
-  if (enable_lto && (is_ios || is_mac || is_android || is_fuchsia || is_wasm)) {
+  if (enable_lto && (is_ios || is_mac || is_android || is_fuchsia || is_wasm || is_ohos)) {
     lto_flags += [ "-flto" ]
   }
 

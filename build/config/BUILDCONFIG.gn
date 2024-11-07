@@ -195,6 +195,7 @@ if (current_os == "win") {
   is_ios = false
   is_linux = false
   is_mac = false
+  is_ohos = false
   is_posix = false
   is_win = true
   is_wasm = false
@@ -206,6 +207,7 @@ if (current_os == "win") {
   is_ios = false
   is_linux = false
   is_mac = true
+  is_ohos = false
   is_posix = true
   is_win = false
   is_wasm = false
@@ -217,6 +219,7 @@ if (current_os == "win") {
   is_ios = false
   is_linux = false
   is_mac = false
+  is_ohos = false
   is_posix = true
   is_win = false
   is_wasm = false
@@ -228,6 +231,7 @@ if (current_os == "win") {
   is_ios = false
   is_linux = true
   is_mac = false
+  is_ohos = false
   is_posix = true
   is_win = false
   is_wasm = false
@@ -242,6 +246,7 @@ if (current_os == "win") {
   is_ios = false
   is_linux = false
   is_mac = false
+  is_ohos = false
   is_posix = true
   is_win = false
   is_wasm = false
@@ -253,6 +258,7 @@ if (current_os == "win") {
   is_ios = true
   is_linux = false
   is_mac = false
+  is_ohos = false
   is_posix = true
   is_win = false
   is_wasm = false
@@ -264,6 +270,7 @@ if (current_os == "win") {
   is_ios = false
   is_linux = true
   is_mac = false
+  is_ohos = false
   is_posix = true
   is_win = false
   is_wasm = false
@@ -275,6 +282,7 @@ if (current_os == "win") {
   is_ios = false
   is_linux = false
   is_mac = false
+  is_ohos = false
   is_posix = true
   is_win = false
   is_wasm = false
@@ -286,9 +294,22 @@ if (current_os == "win") {
   is_ios = false
   is_linux = false
   is_mac = false
+  is_ohos = false
   is_posix = false
   is_win = false
   is_wasm = true
+} else if (current_os == "ohos") {
+  is_android = false
+  is_chromeos = false
+  is_fuchsia = false
+  is_fuchsia_host = false
+  is_ios = false
+  is_linux = false
+  is_mac = false
+  is_ohos  = true
+  is_posix = true
+  is_win = false
+  is_wasm = false
 }
 
 is_apple = is_ios || is_mac
@@ -324,7 +345,7 @@ if (!is_clang && using_sanitizer) {
   is_clang = true
 }
 
-use_flutter_cxx = is_clang && (is_linux || is_android || is_mac || is_ios)
+use_flutter_cxx = is_clang && (is_linux || is_android || is_mac || is_ios || is_ohos)
 
 if (is_msan && !is_linux) {
   assert(false, "Memory sanitizer is only available on Linux.")
@@ -385,6 +406,8 @@ if (is_linux) {
   _native_compiler_configs += [ "//build/config/ios:sdk" ]
 } else if (is_android) {
   _native_compiler_configs += [ "//build/config/android:sdk" ]
+} else if (is_ohos) {
+  _native_compiler_configs += [ "//build/config/ohos:sdk" ]
 }
 
 if (is_clang) {
@@ -551,6 +574,22 @@ if (custom_toolchain != "") {
   } else {
     set_default_toolchain("//build/toolchain/android:$current_cpu")
   }
+} else if (is_ohos) {
+  if (host_os == "linux") {
+    if (is_clang) {
+      host_toolchain = "//build/toolchain/linux:clang_$host_cpu"
+    } else {
+      host_toolchain = "//build/toolchain/linux:$host_cpu"
+    }
+  } else if (host_os == "mac") {
+    host_toolchain = "//build/toolchain/mac:clang_$host_cpu"
+  } else if (host_os == "win") {
+    assert(is_clang)
+    host_toolchain = "//build/toolchain/win:clang_$host_cpu"
+  } else {
+    assert(false, "Unknown host for ohos cross compile")
+  }
+  set_default_toolchain("//build/toolchain/ohos")
 } else if (is_linux) {
   if (is_clang) {
     host_toolchain = "//build/toolchain/linux:clang_$host_cpu"

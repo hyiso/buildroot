@@ -20,6 +20,9 @@ if (current_toolchain == default_toolchain && target_sysroot != "") {
 } else if (is_android) {
   import("//build/config/android/config.gni")
   sysroot = rebase_path("$android_toolchain_root/sysroot", root_build_dir)
+} else if (is_ohos) {
+  import("//build/config/ohos/config.gni")
+  sysroot = rebase_path("$ohos_sdk_root/sysroot", root_build_dir)
 } else if (is_linux && !is_chromeos) {
   if (use_default_linux_sysroot && !is_fuchsia) {
     if (current_cpu == "x64") {

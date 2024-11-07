@@ -1,0 +1,30 @@
+# Copyright 2014 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# This file contains common system config stuff for the Ohos build.
+
+if (is_ohos) {
+
+  declare_args() {
+    ohos_sdk_root = ""
+  }
+
+  if (ohos_sdk_root == "") {
+    # The tool will print the SDK path on the first line.
+    find_sdk_path = exec_script("//build/ohos/find_sdk.py", [], "list lines")
+
+    ohos_sdk_root = find_sdk_path[0]
+  }
+
+  ohos_toolchain_path = ohos_sdk_root + "/llvm"
+  ohos_sysroot_path = ohos_sdk_root + "/sysroot"
+
+  if (current_cpu == "arm64") {
+    ohos_app_abi = "arm64-v8a"
+  } else if (current_cpu == "x64") {
+    ohos_app_abi = "x86_64"
+  } else {
+    assert(false, "Unknown Ohos ABI: " + current_cpu)
+  }
+}

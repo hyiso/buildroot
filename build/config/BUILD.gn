@@ -146,6 +146,10 @@ config("default_libs") {
       "dl",
       "m",
     ]
+  } else if (is_ohos) {
+    libs = [
+      "dl",
+    ]
   } else if (is_linux) {
     libs = [ "dl" ]
   }
